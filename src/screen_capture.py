@@ -2,54 +2,48 @@ import numpy as np
 import mss
 import cv2
 
-# --- IMPORTANTE: Defina a Região de Captura ---
-# Você precisará ajustar essas coordenadas para que correspondam
-# exatamente à janela do seu emulador Pokémon.
-# (top, left) é o canto superior esquerdo.
-# Use um print screen e o Paint/GIMP para achar os pixels.
-GAME_WINDOW_COORDS = {"top": 100, "left": 100, "width": 640, "height": 480}
-# ------------------------------------------------
-
-# Inicializa o objeto de captura de tela (mss)
-# Fazer isso fora da função é mais eficiente
+# Inicializa o mss uma vez só
 sct = mss.mss()
 
-def capture_game_screen():
+def capture_game_screen(window_obj):
     """
-    Captura a região da janela do jogo e a retorna como um 
-    array numpy compatível com OpenCV (BGR).
+    Captura a tela usando um objeto de janela fornecido pelo pygetwindow.
+    Esta função obtém as coordenadas mais recentes da janela a cada chamada.
     """
     try:
-        # Captura a tela usando as coordenadas
-        sct_img = sct.grab(GAME_WINDOW_COORDS)
+        # 1. Verifica se a janela ainda existe e está visível
+        if window_obj is None or not window_obj.visible or window_obj.isMinimized:
+            print("Aviso: Janela alvo não está visível ou foi fechada.", end="\r")
+            return None
+
+        # 2. Pega as coordenadas ATUAIS da janela
+        # Esta é a "mágica": o objeto se atualiza se você mover a janela!
+        coords = {
+            "top": window_obj.top,
+            "left": window_obj.left,
+            "width": window_obj.width,
+            "height": window_obj.height
+        }
+
+        # 3. Garante que a janela tenha um tamanho válido para captura
+        if coords["width"] <= 0 or coords["height"] <= 0:
+            print("Aviso: Janela com tamanho inválido (0 pixels).", end="\r")
+            return None
+
+        # 4. Captura usando as coordenadas
+        sct_img = sct.grab(coords)
         
-        # Converte a imagem bruta (BGRA) para um array numpy
+        # 5. Converte para o formato OpenCV
         img = np.array(sct_img)
-        
-        # O mss captura em formato BGRA. O OpenCV geralmente usa BGR.
-        # Vamos converter de BGRA para BGR (removendo o canal Alpha/transparência)
         img_bgr = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
         
         return img_bgr
-
+        
     except mss.exception.ScreenShotError:
-        print("Erro: Coordenadas de captura fora da tela.")
+        # A janela pode ter sido fechada no exato momento da captura
+        print("Erro de captura (ScreenShotError). A janela foi fechada?", end="\r")
         return None
-
-# Bloco para testar este módulo de forma independente
-if __name__ == '__main_':
-    print("Iniciando teste de captura... Pressione 'q' na janela para sair.")
-    
-    while True:
-        frame = capture_game_screen()
-        
-        if frame is not None:
-            # Mostra a imagem capturada em uma janela
-            cv2.imshow("Teste de Captura", frame)
-        
-        # Condição de parada: pressionar 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-            
-    cv2.destroyAllWindows()
-    print("Teste finalizado.")
+    except Exception as e:
+        # Outros erros (ex: pygetwindow pode falhar se a janela for fechada)
+        print(f"Erro inesperado na captura: {e}", end="\r")
+        return None
