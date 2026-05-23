@@ -105,6 +105,7 @@ if __name__ == "__main__":
                     frame = capturar_frame(hwnd, saveDC, saveBitMap, w, h)
                     
                     if frame is not None:
+                        # testar com uma resolução menor imgsz=[384, 544] para otimizar o uso de recursos 
                         results = model.predict(source=frame, save=False,conf=0.1,imgsz=[736, 1088],stream=True, verbose=False)
                         for res in results:     
                             imagem_com_caixas = res.plot()                
