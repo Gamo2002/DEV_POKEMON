@@ -1,0 +1,65 @@
+//Treinamento usando o Colab - Passos 
+//Preparando o ambiente
+!nvidia-smi
+import os
+HOME = os.getcwd()
+print(HOME)
+
+//Intsalando o yolo na maquina vitural
+# Pip install method (recommended)
+
+!pip install ultralytics==8.2.103 -q
+
+from IPython import display
+display.clear_output()
+
+# prevent ultralytics from tracking your activity
+!yolo settings sync=False
+
+import ultralytics
+ultralytics.checks()
+
+
+//roda para treinar
+!pip install roboflow
+//pegando o meu dataset
+from roboflow import Roboflow
+rf = Roboflow(api_key="8Yw9xsG6nnPYmCOLzyIy")
+project = rf.workspace("gabriel-mgpmn").project("pokemon-hureb")
+version = project.version(4)
+dataset = version.download("yolov8")
+// inicio do treinamento 
+from ultralytics import YOLO
+
+# Carrega o modelo base
+model = YOLO('yolov8n.pt')
+
+# Inicia o treino com os novos ajustes
+results = model.train(
+    data=f"{dataset.location}/data.yaml", 
+    epochs=100,               # Aumentamos para 100 épocas vezes que vai ser "treinado"
+    imgsz=[736, 1088],        # Resolução ajustada para o formato das suas imagens (1080x720)
+    plots=True
+)
+
+//RESULTADO DO TREINAMENTO 30/05/2026 - 31 minutos
+100 epochs completed in 0.517 hours.
+Optimizer stripped from runs/detect/train/weights/last.pt, 6.3MB
+Optimizer stripped from runs/detect/train/weights/best.pt, 6.3MB
+
+Validating runs/detect/train/weights/best.pt...
+Ultralytics YOLOv8.2.103 🚀 Python-3.12.13 torch-2.11.0+cu128 CUDA:0 (Tesla T4, 14913MiB)
+Model summary (fused): 168 layers, 3,007,403 parameters, 0 gradients, 8.1 GFLOPs
+                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100%|██████████| 3/3 [00:02<00:00,  1.30it/s]
+                   all         93        196      0.874      0.956      0.955      0.805
+              Grama_pk         16         24      0.702      0.667      0.665      0.553
+        Menu_Principal          1          1      0.442          1      0.995      0.995
+          Menu_batalha          4          4      0.921          1      0.995      0.965
+           Menu_golpes         10         10      0.963          1      0.995      0.941
+        Pokemon_aliado         52         54      0.978          1      0.988      0.845
+       Pokemon_inimigo         39         41      0.992          1      0.995      0.853
+                   Red         35         35      0.965          1      0.994      0.629
+                cursor         17         17      0.941      0.936      0.969      0.514
+          status_golpe         10         10      0.962          1      0.995      0.955
+Speed: 0.4ms preprocess, 4.3ms inference, 0.0ms loss, 2.7ms postprocess per image
+Results saved to runs/detect/train

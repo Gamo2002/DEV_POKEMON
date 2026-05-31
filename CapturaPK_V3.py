@@ -12,7 +12,7 @@ try:
 except Exception:
     ctypes.windll.user32.SetProcessDPIAware()
 
-model = YOLO('best.pt')
+model = YOLO('best_V2.pt')
 
 # --- FUNÇÕES ---
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     janela_alvo = achar_janela("visualboy")
     
     if not janela_alvo:
-        print("Emulador não encontrado! Abra o jogo primeiro.")
+        print("Emulador não encontrado!")
     else:
         print(f"Acoplado à janela: {janela_alvo}")
         
